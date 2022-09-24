@@ -1,10 +1,10 @@
 FROM node:14
 WORKDIR /usr/src/app
-COPY ./nodejsapp/package*.json /usr/src/app/
+ADD ./nodejsapp/package*.json /usr/src/app/
 RUN npm install
-COPY ./nodejsapp/node_modules /usr/src/app/
-COPY ./nodejsapp/routes /usr/src/app/
-COPY ./nodejsapp/views /usr/src/app/
-COPY app.js package-lock.json package.json /usr/src/app/
+ADD ./nodejsapp/node_modules /usr/src/app/
+ADD ./nodejsapp/routes /usr/src/app/
+ADD ./nodejsapp/views /usr/src/app/
+ADD app.js /usr/src/app/
 EXPOSE 8888
 CMD [ "node", "app.js" ]
