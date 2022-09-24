@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: nodeapp
+  namespace: $BUILD_NAMESPACE
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodeapp
+  template:
+    metadata:
+      labels:
+        app: nodeapp      
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: nodeserver
+          image: 13.212.19.120:32527/nodejs:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: web
+              protocol: TCP
+            - containerPort: 50300
+              name: agent
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          env:
+            - name: LIMITS_MEMORY
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+                  divisor: 1Mi
+      imagePullSecrets:
+       - name: nexus-docker
+      securityContext:
+        fsGroup: 1000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodeapp
+  namespace: $BUILD_NAMESPACE
+  labels:
+    app: nodeapp
+spec:
+  selector:
+    app: nodeapp
+  type: NodePort
+  ports:
+    - name: web
+      port: 3000
+      targetPort: web
+      nodePort: 30070

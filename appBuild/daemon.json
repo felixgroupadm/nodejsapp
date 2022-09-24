@@ -1,0 +1,4 @@
+{
+"exec-opts": ["native.cgroupdriver=systemd"],
+"insecure-registries": ["13.212.19.120:32527"]
+}

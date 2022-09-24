@@ -1,0 +1,79 @@
+def mylabel = "worker-${UUID.randomUUID().toString()}"
+
+pipeline {
+ agent {
+  kubernetes {
+      label mylabel
+      defaultContainer 'ubuntu'
+      yamlFile 'appBuild/KubernetesPod.yaml'
+    }
+  }
+
+  stages {
+    stage("Load Variables"){
+        steps{
+            script{
+                env.BUILD_NAMESPACE = "devops-build"
+                NEXUS_HOST = "13.212.19.120"
+                NEXUS_PORT = "32527"
+                NODE_IP = "ip-172-26-2-234"
+            }
+        }
+    }
+   stage('Build Package') {
+     steps {
+       container('maven') {
+          sh "mvn clean install"
+	  sh "cp target/*war appBuild/"
+	  sh "echo \"Build Successfull\""
+       }
+     }
+   }
+    stage('Build image') {
+     steps {
+       container('docker') {
+	  sh "Environment=\'DOCKER_OPTS=--insecure-registry=\"13.212.19.120:32527\"\'"
+	  sh "which docker"
+	  sh "pwd"
+	  sh "ls -ltrh /etc/"
+	  sh "ls -ltrh /etc/docker"
+	  sh "pwd"
+	  sh "cp appBuild/daemon.json /etc/docker/daemon.json"
+	  // sh "/usr/local/bin/docker login --username ${env.DOCKERHOST_NEXUS_USERNAME} --password ${env.DOCKERHOST_NEXUS_PASSWD} 13.212.19.120:32527"
+	   sh "/usr/local/bin/docker build -t 13.212.19.120:32527/tomcat:v3 appBuild/"
+          }
+        }
+     }
+    stage('Connect-to-NexusRepo') {
+      steps {
+        container('docker') {
+          sh 'docker login -u admin -p admin 13.212.19.120:32527'
+        }
+      }
+    }
+    stage('Push-Images-Docker-to-NexusRepo') {
+      steps {
+        container('docker') {
+          sh 'docker push 13.212.19.120:32527/tomcat:v3'
+          }
+        }
+     }
+
+    stage('Deployment') {
+      steps {
+        dir('appDeploy') {
+          script {
+           kubernetesDeploy(configs: "tomcatDeploy.yaml", kubeconfigId: "kubernetes")
+              }
+            }
+          }
+        }
+      }
+    post {
+      always {
+        container('docker') {
+          sh 'docker logout'
+       }
+      }
+    }
+}
