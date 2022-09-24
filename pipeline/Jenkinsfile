@@ -40,7 +40,7 @@ pipeline {
 	  sh "pwd"
 	  sh "cp appBuild/daemon.json /etc/docker/daemon.json"
 	  // sh "/usr/local/bin/docker login --username ${env.DOCKERHOST_NEXUS_USERNAME} --password ${env.DOCKERHOST_NEXUS_PASSWD} 13.212.19.120:32527"
-	   sh "/usr/local/bin/docker build -t 13.212.19.120:32527/nodejs:v1 appBuild/"
+	   sh "/usr/local/bin/docker build -t 13.212.19.120:32527/nodejs:v1 src/"
           }
         }
      }
