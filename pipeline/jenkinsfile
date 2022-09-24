@@ -20,7 +20,7 @@ pipeline {
             }
         }
     }
-   stage('Build Package') {
+  /* stage('Build Package') {
      steps {
        container('maven') {
           sh "mvn clean install"
@@ -28,7 +28,7 @@ pipeline {
 	  sh "echo \"Build Successfull\""
        }
      }
-   }
+   }*/
     stage('Build image') {
      steps {
        container('docker') {
@@ -40,7 +40,7 @@ pipeline {
 	  sh "pwd"
 	  sh "cp appBuild/daemon.json /etc/docker/daemon.json"
 	  // sh "/usr/local/bin/docker login --username ${env.DOCKERHOST_NEXUS_USERNAME} --password ${env.DOCKERHOST_NEXUS_PASSWD} 13.212.19.120:32527"
-	   sh "/usr/local/bin/docker build -t 13.212.19.120:32527/tomcat:v3 appBuild/"
+	   sh "/usr/local/bin/docker build -t 13.212.19.120:32527/nodejs:v1 appBuild/"
           }
         }
      }
@@ -54,7 +54,7 @@ pipeline {
     stage('Push-Images-Docker-to-NexusRepo') {
       steps {
         container('docker') {
-          sh 'docker push 13.212.19.120:32527/tomcat:v3'
+          sh 'docker push 13.212.19.120:32527/nodejs:v1'
           }
         }
      }
@@ -63,7 +63,7 @@ pipeline {
       steps {
         dir('appDeploy') {
           script {
-           kubernetesDeploy(configs: "tomcatDeploy.yaml", kubeconfigId: "kubernetes")
+           kubernetesDeploy(configs: "nodeDeploy.yaml", kubeconfigId: "kubernetes")
               }
             }
           }
